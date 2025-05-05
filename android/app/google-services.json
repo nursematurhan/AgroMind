@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1001969369914",
+    "project_id": "agromind-b2196",
+    "storage_bucket": "agromind-b2196.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1001969369914:android:6c3abb0e13caad511a4603",
+        "android_client_info": {
+          "package_name": "com.nursematurhan.agromind"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBwe2OSvERpwIPslcoXWE5BqbTaW8VCKPs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
