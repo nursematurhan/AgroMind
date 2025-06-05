@@ -4,7 +4,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 
-import 'components/root_page.dart';   // login öncesi menülü yapı
+import 'components/root_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -19,9 +19,9 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: const RootPage(),  // 🌟 Buraya yönlendirme sayfası
+      home: const RootPage(),
       routes: {
-        '/map': (context) => const MapPage(),  // <--- Harita sayfası route'u
+        '/map': (context) => const MapPage(),
       },
     );
   }

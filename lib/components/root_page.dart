@@ -14,9 +14,9 @@ class RootPage extends StatelessWidget {
         if (snapshot.connectionState == ConnectionState.active) {
           final user = snapshot.data;
           if (user != null) {
-            return const AuthPage(); // Giriş yaptıysa MainScreen'e yönlendiriyor
+            return const AuthPage();
           } else {
-            return const GuestMainScreen(); // Giriş yoksa Guest menüsü
+            return const GuestMainScreen();
           }
         } else {
           return const Scaffold(

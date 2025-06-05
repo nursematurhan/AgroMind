@@ -1,8 +1,11 @@
+import 'dart:convert';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:http/http.dart' as http;
 
 class AdvicePage extends StatefulWidget {
   const AdvicePage({super.key});
@@ -12,15 +15,13 @@ class AdvicePage extends StatefulWidget {
 }
 
 class _AdvicePageState extends State<AdvicePage> {
-  String selectedLocationType = 'Garden';
-  String selectedCategory = 'Vegetables & Fruits';
   List<Map<String, String>> userAddresses = [];
   Map<String, String>? selectedAddress;
 
-  final categoryOptions = [
-    'Vegetables & Fruits',
-    'Grains',
-    'Seedlings',
+  String selectedMonth = 'January';
+  final monthOptions = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'
   ];
 
   @override
@@ -41,7 +42,6 @@ class _AdvicePageState extends State<AdvicePage> {
       userAddresses = addresses.map<Map<String, String>>((e) => {
         'title': e['title']?.toString() ?? '',
         'address': e['address']?.toString() ?? '',
-
       }).toList();
 
       if (userAddresses.isNotEmpty) {
@@ -73,7 +73,7 @@ class _AdvicePageState extends State<AdvicePage> {
               icon: const Icon(Icons.location_on),
               label: const Text("Select from Map"),
               onPressed: () async {
-                Navigator.pop(context); // Close bottom sheet
+                Navigator.pop(context);
                 final selectedLocation = await Navigator.pushNamed(context, '/map') as LatLng?;
                 if (selectedLocation != null) {
                   final titleInput = await showDialog<String>(
@@ -195,8 +195,7 @@ class _AdvicePageState extends State<AdvicePage> {
 
     await FirebaseFirestore.instance.collection('queries').add({
       'userId': user.uid,
-      'locationType': selectedLocationType,
-      'category': selectedCategory,
+      'month': selectedMonth,
       'addressTitle': selectedAddress?['title'] ?? '',
       'addressDetail': selectedAddress?['address'] ?? '',
       'suggestion': suggestion,
@@ -205,15 +204,18 @@ class _AdvicePageState extends State<AdvicePage> {
   }
 
   String _getSuggestion() {
-    switch (selectedCategory) {
-      case 'Vegetables & Fruits':
-        return 'Tomato';
-      case 'Grains':
-        return 'Wheat';
-      case 'Seedlings':
-        return 'Pepper Seedling';
-      default:
+    switch (selectedMonth) {
+      case 'March':
+      case 'April':
         return 'Lettuce';
+      case 'May':
+      case 'June':
+        return 'Tomato';
+      case 'September':
+      case 'October':
+        return 'Spinach';
+      default:
+        return 'Radish';
     }
   }
 
@@ -221,10 +223,11 @@ class _AdvicePageState extends State<AdvicePage> {
     switch (suggestion) {
       case 'Tomato':
         return FontAwesomeIcons.carrot;
-      case 'Wheat':
-        return FontAwesomeIcons.seedling;
-      case 'Pepper Seedling':
+      case 'Lettuce':
         return FontAwesomeIcons.leaf;
+      case 'Spinach':
+        return FontAwesomeIcons.seedling;
+      case 'Radish':
       default:
         return Icons.eco;
     }
@@ -267,30 +270,12 @@ class _AdvicePageState extends State<AdvicePage> {
             ),
 
             const SizedBox(height: 20),
-            const Text("1. Where do you want to grow your product?"),
-            Row(
-              children: [
-                ChoiceChip(
-                  label: const Text('Garden'),
-                  selected: selectedLocationType == 'Garden',
-                  onSelected: (_) => setState(() => selectedLocationType = 'Garden'),
-                ),
-                const SizedBox(width: 8),
-                ChoiceChip(
-                  label: const Text('Field'),
-                  selected: selectedLocationType == 'Field',
-                  onSelected: (_) => setState(() => selectedLocationType = 'Field'),
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 20),
-            const Text("2. Select a category"),
+            const Text("📅 Which month do you plan to plant?"),
             DropdownButton<String>(
               isExpanded: true,
-              value: selectedCategory,
-              items: categoryOptions.map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
-              onChanged: (val) => setState(() => selectedCategory = val!),
+              value: selectedMonth,
+              items: monthOptions.map((m) => DropdownMenuItem(value: m, child: Text(m))).toList(),
+              onChanged: (val) => setState(() => selectedMonth = val!),
             ),
 
             const SizedBox(height: 20),

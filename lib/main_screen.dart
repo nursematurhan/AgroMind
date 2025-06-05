@@ -23,14 +23,13 @@ class _MainScreenState extends State<MainScreen> {
 
   void _onItemTapped(int index) {
     setState(() {
-      print("🟢 Aktif Sayfa: $index");
+
       _selectedIndex = index;
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    print("🟢 MainScreen yüklendi");
 
     return Scaffold(
       body: _pages[_selectedIndex],

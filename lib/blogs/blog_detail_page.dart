@@ -12,7 +12,7 @@ class BlogDetailPage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Blog Detail"),
+
         backgroundColor: Colors.green[800],
       ),
       body: SingleChildScrollView(

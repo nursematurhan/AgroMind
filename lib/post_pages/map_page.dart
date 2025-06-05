@@ -2,6 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:geocoding/geocoding.dart'; // 👈 Yeni eklenen paket
 
 class MapPage extends StatefulWidget {
   const MapPage({super.key});
@@ -12,9 +14,31 @@ class MapPage extends StatefulWidget {
 
 class _MapPageState extends State<MapPage> {
   GoogleMapController? mapController;
+  LatLng? _initialPosition;
   LatLng? selectedPosition;
 
-  final LatLng _initialPosition = const LatLng(0.3476, 32.5825); // Uganda - Afrika örneği
+  @override
+  void initState() {
+    super.initState();
+    _determinePosition();
+  }
+
+  Future<void> _determinePosition() async {
+    LocationPermission permission = await Geolocator.requestPermission();
+
+    if (permission == LocationPermission.always ||
+        permission == LocationPermission.whileInUse) {
+      Position position = await Geolocator.getCurrentPosition();
+      setState(() {
+        _initialPosition = LatLng(position.latitude, position.longitude);
+      });
+    } else {
+      // Konum izni verilmediyse Türkiye merkez koordinatları
+      setState(() {
+        _initialPosition = const LatLng(39.9208, 32.8541); // Ankara
+      });
+    }
+  }
 
   Future<void> _saveAddressToFirestore(LatLng position) async {
     final title = await showDialog<String>(
@@ -44,15 +68,27 @@ class _MapPageState extends State<MapPage> {
       final data = doc.data() ?? {};
       final List<dynamic> addresses = data['addresses'] ?? [];
 
+      // 📍 Adresi koordine çevir (LatLng -> açık adres)
+      String fullAddress = "Lat: ${position.latitude}, Lng: ${position.longitude}";
+      try {
+        List<Placemark> placemarks = await placemarkFromCoordinates(position.latitude, position.longitude);
+        if (placemarks.isNotEmpty) {
+          Placemark place = placemarks.first;
+          fullAddress = "${place.street}, ${place.locality}, ${place.country}";
+        }
+      } catch (_) {
+        // fallback olarak lat/lng kalır
+      }
+
       addresses.add({
         'title': title.trim(),
-        'address': "Lat: ${position.latitude}, Lng: ${position.longitude}",
+        'address': fullAddress,
         'lat': position.latitude,
         'lng': position.longitude,
         'email': user.email,
       });
 
-      await docRef.update({'addresses': addresses});
+      await docRef.set({'addresses': addresses}, SetOptions(merge: true));
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -79,15 +115,17 @@ class _MapPageState extends State<MapPage> {
           )
         ],
       ),
-      body: Stack(
+      body: _initialPosition == null
+          ? const Center(child: CircularProgressIndicator())
+          : Stack(
         children: [
           GoogleMap(
             onMapCreated: (controller) {
               mapController = controller;
             },
             initialCameraPosition: CameraPosition(
-              target: _initialPosition,
-              zoom: 6,
+              target: _initialPosition!,
+              zoom: 10,
             ),
             onTap: (position) {
               setState(() {

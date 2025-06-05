@@ -16,15 +16,13 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  // text editing controllers
+
   final emailController = TextEditingController();
 
   final passwordController = TextEditingController();
 
-  // sign user in method
   void signUserIn() async{
 
-    //show loading circle
     showDialog(context: context, builder: (context){
         return const Center(
           child: CircularProgressIndicator(),
@@ -32,24 +30,20 @@ class _LoginPageState extends State<LoginPage> {
       },
     );
 
-    //try sign in
     try{
       await FirebaseAuth.instance.signInWithEmailAndPassword(
           email: emailController.text,
           password: passwordController.text
       );
-      print("✅ Giriş başarılı: ${emailController.text}");
-      //pop the loading circle
+
       Navigator.pop(context);
     } on FirebaseAuthException catch (e){
-      print("❌ Giriş HATASI: ${e.code}");
-      //Show error message
+
       showErrorMessage(e.code);
     }
 
   }
 
-  //error message to user
   void showErrorMessage(String message){
     showDialog(
       context: context,
@@ -87,8 +81,7 @@ class _LoginPageState extends State<LoginPage> {
                 ),
 
                 SizedBox(height: MediaQuery.of(context).padding.bottom + 30),
-            
-                // welcome back, you've been missed!
+
                 Text(
                   'Welcome back you\'ve been missed!',
                   style: TextStyle(
@@ -139,56 +132,6 @@ class _LoginPageState extends State<LoginPage> {
                   onTap: signUserIn,
                 ),
 
-                SizedBox(height: MediaQuery.of(context).padding.bottom + 40),
-            
-                // or continue with
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 25.0),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Divider(
-                          thickness: 0.5,
-                          color: Colors.green[900],
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                        child: Text(
-                          'Or continue with',
-                          style: TextStyle(color: Colors.green[900]),
-                        ),
-                      ),
-                      Expanded(
-                        child: Divider(
-                          thickness: 0.5,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                SizedBox(height: MediaQuery.of(context).padding.bottom + 50),
-            
-                // google + apple sign in buttons
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    // google button
-                    SquareTile(
-                        onTap: ()=> AuthService().signInWithGoogle(),
-                        imagePath: 'lib/images/google.png'),
-            
-                    SizedBox(width: 25),
-            
-                    // apple button
-                    SquareTile(
-                        onTap: (){},
-                        imagePath: 'lib/images/apple.png')
-                  ],
-                ),
-            
                 SizedBox(height: MediaQuery.of(context).padding.bottom + 50),
             
                 // not a member? register now

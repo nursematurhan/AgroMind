@@ -17,9 +17,7 @@ class _AuthPageState extends State<AuthPage> {
       body: StreamBuilder<User?>(
         stream: FirebaseAuth.instance.authStateChanges(),
         builder: (context, snapshot) {
-          // Giriş yapılmışsa MainScreen'e yönlendir
           if (snapshot.hasData) {
-            print("🟢 Kullanıcı giriş yaptı: ${snapshot.data!.email}");
             return const MainScreen();
           } else {
             return const LoginOrRegisterPage();

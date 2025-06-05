@@ -18,12 +18,17 @@ class _AddBlogPageState extends State<AddBlogPage> {
   late TextEditingController contentController;
   late TextEditingController imageUrlController;
 
-  String selectedCategory = "Vegetables & Fruits";
+  String selectedCategory = "Soil Health";
 
   final categories = [
-    "Vegetables & Fruits",
-    "Grains",
-    "Seedlings",
+    "All",
+    "Soil Health",
+    "Sustainable Farming",
+    "Climate-Smart Agriculture",
+    "Beginner to Advanced",
+    "Crop Guides",
+    "Composting and Soil Enrichment",
+    "Pest and Disease Management ",
   ];
 
   @override

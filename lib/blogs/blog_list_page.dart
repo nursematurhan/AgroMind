@@ -20,9 +20,13 @@ class _BlogListPageState extends State<BlogListPage> {
 
   final categories = [
     "All",
-    "Vegetables & Fruits",
-    "Grains",
-    "Seedlings",
+    "Soil Health",
+    "Sustainable Farming",
+    "Climate-Smart Agriculture",
+    "Beginner to Advanced",
+    "Crop Guides",
+    "Composting and Soil Enrichment",
+    "Pest and Disease Management ",
   ];
 
   @override
@@ -32,8 +36,6 @@ class _BlogListPageState extends State<BlogListPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Agriculture Blogs"),
-        centerTitle: true,
         backgroundColor: Colors.green[800],
       ),
       body: Column(
