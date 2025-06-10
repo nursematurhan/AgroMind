@@ -11,7 +11,7 @@
 
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="AIzaSyBKOI6LDfurMaU2ybiZy1r18eiUTFwOUx8"/>
+            android:value="xxxxxxxxxxxxxxxxxxx"/>
         <activity
             android:name="com.nursematurhan.agromind.MainActivity"
             android:exported="true"
