@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:agromind/login/register_page.dart';
 import 'dart:async';
@@ -13,16 +14,13 @@ class _HomePageState extends State<HomePage> {
   late Timer _sliderTimer;
   int _currentPage = 0;
 
-  final String didYouKnow =
-      "Did you know? Tomatoes are the most consumed vegetable globally.";
-  final String todaysTip =
-      "Today’s tip: Water your crops early in the morning to prevent evaporation.";
+  String didYouKnowText = "Loading fun fact...";
+  String todaysTip = "Loading today's tip...";
 
   final List<Map<String, String>> sliderContents = [
     {
       "title": "1 – Set Your Location",
-      "text":
-      "Choose your location so we can recommend the right crops based on your local weather and soil."
+      "text": "Choose your location so we can recommend the right crops based on your local weather and soil."
     },
     {
       "title": "2 – Get Smart Crop Suggestions",
@@ -42,6 +40,8 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     _pageController = PageController(initialPage: 0);
+    fetchTodaysTip();
+    fetchRandomDidYouKnow();
 
     _sliderTimer = Timer.periodic(const Duration(seconds: 10), (timer) {
       if (_pageController.hasClients) {
@@ -53,6 +53,57 @@ class _HomePageState extends State<HomePage> {
         );
       }
     });
+  }
+
+  Future<void> fetchTodaysTip() async {
+    final weekday = DateTime.now().weekday;
+    final days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    final todayName = days[weekday - 1];
+
+    try {
+      final snapshot = await FirebaseFirestore.instance
+          .collection('farmingTips')
+          .where('dayOfWeek', isEqualTo: todayName)
+          .get();
+
+      if (snapshot.docs.isNotEmpty) {
+        setState(() {
+          todaysTip = "Today's tips: ${snapshot.docs.first['text']}";
+        });
+      } else {
+        setState(() {
+          todaysTip = "Today's tips: No tip available for today. 🌱";
+        });
+      }
+    } catch (e) {
+      setState(() {
+        todaysTip = "Today's tips: Error loading tip.";
+      });
+    }
+  }
+
+  Future<void> fetchRandomDidYouKnow() async {
+    try {
+      final snapshot = await FirebaseFirestore.instance
+          .collection('didYouKnow')
+          .get();
+
+      if (snapshot.docs.isNotEmpty) {
+        final randomIndex = DateTime.now().millisecondsSinceEpoch % snapshot.docs.length;
+        final randomDoc = snapshot.docs[randomIndex];
+        setState(() {
+          didYouKnowText = "Did you know? ${randomDoc['text']}";
+        });
+      } else {
+        setState(() {
+          didYouKnowText = "Did you know? Stay tuned for fun facts!";
+        });
+      }
+    } catch (e) {
+      setState(() {
+        didYouKnowText = "Did you know? Error loading.";
+      });
+    }
   }
 
   @override
@@ -69,7 +120,6 @@ class _HomePageState extends State<HomePage> {
     if (hour >= 17 && hour < 21) return "🌇 Good Evening";
     return "🌙 Good Night";
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -100,7 +150,7 @@ class _HomePageState extends State<HomePage> {
                     borderRadius: BorderRadius.circular(10),
                   ),
                   padding: const EdgeInsets.all(12),
-                  child: Text(didYouKnow),
+                  child: Text(didYouKnowText),
                 ),
                 const SizedBox(height: 15),
 
@@ -157,7 +207,6 @@ class _HomePageState extends State<HomePage> {
 
                 const SizedBox(height: 30),
 
-                // 🌱 ABOUT SECTION
                 const Text(
                   '🌱 About AgroMind',
                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),

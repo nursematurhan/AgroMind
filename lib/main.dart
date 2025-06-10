@@ -1,10 +1,12 @@
-import 'package:agromind/post_pages/map_page.dart';
+import 'package:agromind/SplashScreen.dart';
+import 'package:agromind/location/map_page.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 
 import 'components/root_page.dart';
+import 'location/manuel_address_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -19,9 +21,10 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: const RootPage(),
+      home: const SplashScreen(),
       routes: {
         '/map': (context) => const MapPage(),
+        '/manual': (context) => const ManuelAddressPage(),
       },
     );
   }

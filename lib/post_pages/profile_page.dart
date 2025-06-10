@@ -33,17 +33,66 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
-  void changePassword() async {
-    try {
-      await FirebaseAuth.instance.sendPasswordResetEmail(email: user!.email!);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("📧 Password reset link sent to your email.")),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("❌ Failed to send reset email: $e")),
-      );
-    }
+  void changePassword() {
+    final currentPasswordController = TextEditingController();
+    final newPasswordController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("🔒 Change Password"),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: currentPasswordController,
+              obscureText: true,
+              decoration: const InputDecoration(labelText: 'Current Password'),
+            ),
+            TextField(
+              controller: newPasswordController,
+              obscureText: true,
+              decoration: const InputDecoration(labelText: 'New Password'),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Cancel"),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              final user = FirebaseAuth.instance.currentUser;
+              final currentPassword = currentPasswordController.text.trim();
+              final newPassword = newPasswordController.text.trim();
+
+              if (user?.email == null) return;
+
+              final cred = EmailAuthProvider.credential(
+                email: user!.email!,
+                password: currentPassword,
+              );
+
+              try {
+                await user.reauthenticateWithCredential(cred);
+                await user.updatePassword(newPassword);
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text("✅ Password changed successfully.")),
+                );
+              } catch (e) {
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text("❌ Failed to change password: $e")),
+                );
+              }
+            },
+            child: const Text("Update"),
+          ),
+        ],
+      ),
+    );
   }
 
   void fetchUserAddresses() async {
@@ -75,6 +124,35 @@ class _ProfilePageState extends State<ProfilePage> {
     userAddresses.removeAt(index);
     await docRef.update({'addresses': userAddresses});
     fetchUserAddresses();
+
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("✅ Address deleted successfully.")),
+    );
+  }
+
+  void _confirmSignOut() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Logout"),
+        content: const Text("Are you sure you want to log out?"),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Cancel"),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              await FirebaseAuth.instance.signOut();
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red[400]),
+            child: const Text("Log Out"),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -89,88 +167,138 @@ class _ProfilePageState extends State<ProfilePage> {
     final isAdmin = user?.email == "admin@gmail.com";
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Profile"),
-        centerTitle: true,
         backgroundColor: Colors.green[800],
       ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Center(
-                child: Icon(Icons.account_circle, size: 100, color: Colors.green),
-              ),
-              const SizedBox(height: 20),
-              Center(
-                child: Text(
-                  user?.email ?? "",
-                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-              ),
-              if (isAdmin)
+      body: Container(
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 40),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
                 const Center(
-                  child: Text("👑 Admin User", style: TextStyle(color: Colors.orange)),
+                  child: Icon(
+                    Icons.account_circle,
+                    size: 100,
+                    color: Colors.lightGreen,
+                  ),
                 ),
-              const SizedBox(height: 30),
+                const SizedBox(height: 20),
+                Center(
+                  child: Text(
+                    user?.email ?? "",
+                    style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                  ),
+                ),
+                if (isAdmin)
+                  const Center(
+                    child: Text("👑 Admin User", style: TextStyle(color: Colors.orange)),
+                  ),
+                const SizedBox(height: 30),
 
-              const Text("📍 Addresses:", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 10),
-              userAddresses.isNotEmpty
-                  ? Column(
-                children: userAddresses.asMap().entries.map((entry) {
-                  int index = entry.key;
-                  var addr = entry.value;
-                  return Card(
-                    child: ListTile(
-                      title: Text("🏠 ${addr['title']}: ${addr['address']}", style: const TextStyle(fontSize: 16)),
-                      trailing: IconButton(
-                        icon: const Icon(Icons.delete),
-                        onPressed: () => deleteAddress(index),
+                Center(
+                  child: TextField(
+                    controller: nameController,
+                    enabled: isEditingName,
+                    textAlign: TextAlign.center,
+                    decoration: const InputDecoration(
+                      labelText: "Your Name",
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Center(
+                  child: isEditingName
+                      ? ElevatedButton(
+                    onPressed: updateDisplayName,
+                    style: ElevatedButton.styleFrom(backgroundColor: Colors.green[400]),
+                    child: const Text("Save Name"),
+                  )
+                      : OutlinedButton(
+                    onPressed: () => setState(() => isEditingName = true),
+                    child: const Text("Edit Name"),
+                  ),
+                ),
+                const SizedBox(height: 30),
+
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    ElevatedButton.icon(
+                      onPressed: changePassword,
+                      icon: const Icon(Icons.lock_reset),
+                      label: const Text("Change Password"),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.grey[300],
+                        minimumSize: const Size(150, 40),
                       ),
                     ),
-                  );
-                }).toList(),
-              )
-                  : const Text("No address found.", style: TextStyle(fontSize: 16)),
-
-              const SizedBox(height: 20),
-              TextField(
-                controller: nameController,
-                enabled: isEditingName,
-                decoration: const InputDecoration(
-                  labelText: "Your Name",
-                  border: OutlineInputBorder(),
+                    ElevatedButton.icon(
+                      onPressed: () => _showAddressDialog(context),
+                      icon: const Icon(Icons.location_on),
+                      label: const Text("Addresses"),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.grey[300],
+                        minimumSize: const Size(150, 40),
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-              const SizedBox(height: 10),
-              isEditingName
-                  ? ElevatedButton(
-                onPressed: updateDisplayName,
-                child: const Text("Save Name"),
-              )
-                  : OutlinedButton(
-                onPressed: () => setState(() => isEditingName = true),
-                child: const Text("Edit Name"),
-              ),
-              const SizedBox(height: 20),
-              ElevatedButton.icon(
-                onPressed: changePassword,
-                icon: const Icon(Icons.lock_reset),
-                label: const Text("Change Password"),
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.lightGreen),
-              ),
-              const SizedBox(height: 20),
-              ElevatedButton.icon(
-                onPressed: () => FirebaseAuth.instance.signOut(),
-                icon: const Icon(Icons.logout),
-                label: const Text("Logout"),
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-              )
-            ],
+                const SizedBox(height: 50),
+                Center(
+                  child: ElevatedButton.icon(
+                      onPressed: _confirmSignOut,
+                      icon: const Icon(Icons.logout),
+                      label: const Text("Logout"),
+                      style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red[400],
+                      minimumSize: const Size(200, 40),
+                      ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
+      ),
+    );
+  }
+
+  void _showAddressDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text("Your Addresses"),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: userAddresses.isNotEmpty
+              ? ListView.builder(
+            shrinkWrap: true,
+            itemCount: userAddresses.length,
+            itemBuilder: (context, index) {
+              final addr = userAddresses[index];
+              return ListTile(
+                title: Text("🏠 ${addr['title']}: ${addr['address']}",
+                    style: const TextStyle(fontSize: 16)),
+                trailing: IconButton(
+                  icon: const Icon(Icons.delete),
+                  onPressed: () {
+                    Navigator.pop(context);
+                    deleteAddress(index);
+                  },
+                ),
+              );
+            },
+          )
+              : const Text("No address found."),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Close"),
+          ),
+        ],
       ),
     );
   }
