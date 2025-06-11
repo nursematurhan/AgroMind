@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_place/google_place.dart';
 
-const String kGoogleApiKey = 'AIzaSyBKOI6LDfurMaU2ybiZy1r18eiUTFwOUx8';
+const String kGoogleApiKey = 'xxxxxxxxxxxxxxxx';
 
 class ManuelAddressPage extends StatefulWidget {
   const ManuelAddressPage({super.key});
