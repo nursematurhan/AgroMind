@@ -1,8 +1,8 @@
-import 'package:agromind/post_pages/profile_page.dart';
+import 'package:agromind/pages/profile_page.dart';
 import 'package:agromind/advice/query_history_page.dart';
 import 'package:flutter/material.dart';
 import 'package:agromind/advice/advice_page.dart';
-import 'blogs/blog_list_page.dart';
+import '../blogs/blog_list_page.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});

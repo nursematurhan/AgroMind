@@ -1,4 +1,4 @@
-import 'package:agromind/main_screen.dart';
+import 'package:agromind/pages/main_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'login_or_register_page.dart';
